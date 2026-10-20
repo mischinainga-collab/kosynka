@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Косынка Онлайн | Классический Пасьянс</title>
+    <style>
+        :root {
+            --bg-color: #1a4a25;
+            --table-color: #2e7d32;
+            --panel-bg: rgba(0, 0, 0, 0.4);
+            --text-color: #ffffff;
+            --card-width: 75px;
+            --card-height: 108px;
+            --card-gap: 12px;
+            --card-radius: 6px;
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --card-width: 44px;
+                --card-height: 64px;
+                --card-gap: 6px;
+                --card-radius: 4px;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle, #2e7d32 0%, #1b5e20 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Шапка полноценного сайта */
+        header {
+            background-color: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+
+        .logo-area h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #ffeb3b, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Социальные сети */
+        .social-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-social {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: white;
+            transition: transform 0.2s, filter 0.2s;
+        }
+
+        .btn-social:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .btn-sc { background: #ff5500; }
+        .btn-tg { background: #229ED9; }
+        .btn-ig { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+
+        /* Игровая панель управления */
+        .controls-bar {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item span {
+            font-weight: bold;
+            color: #ffeb3b;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Игровой стол */
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .solitaire-table {
+            width: 100%;
+            max-width: 650px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Верхний ряд */
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .stock-waste-group, .foundations-group {
+            display: flex;
+            gap: var(--card-gap);
+        }
+
+        /* Игровые зоны - слоты */
+        .card-slot {
+            width: var(--card-width);
+            height: var(--card-height);
+            border: 2px dashed rgba(255, 255, 255, 0.25);
+            border-radius: var(--card-radius);
+            position: relative;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Нижний ряд (7 стопок) */
+        .tableau-group {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            min-height: 400px;
+        }
+
+        /* Стилизация карт */
+        .card {
+            width: var(--card-width);
+            height: var(--card-height);
+            border-radius: var(--card-radius);
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            cursor: grab;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px;
+            color: black;
+            font-family: "Arial New", sans-serif;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                font-size: 0.75rem;
+                padding: 2px;
+            }
+        }
+
+        .card:active {
+            cursor: grabbing;
+        }
+
+        .card.back {
+            background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+            border: 3px solid white;
+            color: transparent !important;
+        }
+        
+        .card.back::after {
+            content: "♠♥♦♣";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255,255,255,0.15);
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+        @media (max-width: 768px) {
+            .card.back::after { font-size: 0.7rem; }
+        }
+
+        .card.red { color: #d32f2f; }
+        .card.black { color: #212121; }
+
+        .card-suit-top { align-self: flex-start; line-height: 1; }
+        .card-suit-center { align-self: center; font-size: 2rem; line-height: 1; }
+        @media (max-width: 768px) { .card-suit-center { font-size: 1.1rem; } }
+        .card-suit-bottom { align-self: flex-end; transform: rotate(180deg); line-height: 1; }
+
+        .dragging {
+            opacity: 0.5;
+            z-index: 1000 !important;
+        }
+
+        /* Футер */
+        footer {
+            background: rgba(0, 0, 0, 0.5);
+            text-align: center;
+            padding: 12px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Окно победы */
+        .win-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .win-screen h2 { font-size: 3rem; color: #ffeb3b; margin-bottom: 10px; }
+        .win-screen p { font-size: 1.2rem; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- Шапка полноценного веб-сайта -->
+    <header>
+        <div class="logo-area">
+            <h1>Косынка Клиент</h1>
+        </div>
+        <div class="social-links">
+            <a href="https://soundcloud.com/goshan_traplord" target="_blank" class="btn-social btn-sc">SoundCloud</a>
+            <a href="https://t.me/goshan_traplord" target="_blank" class="btn-social btn-tg">Telegram</a>
+            <a href="https://instagram.com/oggoshylya/" target="_blank" class="btn-social btn-ig">Instagram</a>
+        </div>
+    </header>
+
+    <!-- Панель статистики и действий игрока -->
+    <div class="controls-bar">
+        <div class="stats">
+            <div class="stat-item">Счет: <span id="score-val">0</span></div>
+            <div class="stat-item">Ходы: <span id="moves-val">0</span></div>
+        </div>
+        <div class="actions">
+            <button class="btn-action" onclick="initGame()">Новая игра</button>
+        </div>
+    </div>
+
+    <!-- Игровое поле -->
+    <main>
+        <div class="solitaire-table">
+            <!-- Верхний ряд: колода, сброс, дома -->
+            <div class="top-row">
+                <div class="stock-waste-group">
+                    <div id="stock" class="card-slot" onclick="drawCard()"></div>
+                    <div id="waste" class="card-slot"></div>
+                </div>
+                <div class="foundations-group">
+                    <div id="fnd-0" class="card-slot foundation" data-suit=""></div>
+                    <div id="fnd-1" class="card-slot foundation" data-suit=""></div>
+                    <div id="fnd-2" class="card-slot foundation" data-suit=""></div>
+                    <div id="fnd-3" class="card-slot foundation" data-suit=""></div>
+                </div>
+            </div>
+
+            <!-- Семь рабочих стопок -->
+            <div class="tableau-group">
+                <div id="tab-0" class="card-slot tableau"></div>
+                <div id="tab-1" class="card-slot tableau"></div>
+                <div id="tab-2" class="card-slot tableau"></div>
+                <div id="tab-3" class="card-slot tableau"></div>
+                <div id="tab-4" class="card-slot tableau"></div>
+                <div id="tab-5" class="card-slot tableau"></div>
+                <div id="tab-6" class="card-slot tableau"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Подвал сайта -->
+    <footer>
+        &copy; 2026 Косынка Онлайн. Все права защищены. Разработано для гашан.
+    </footer>
+
+    <!-- Экран победы -->
+    <div id="win-screen" class="win-screen">
+        <h2>Победа!</h2>
+        <p id="win-stats">Вы успешно собрали пасьянс!</p>
+        <button class="btn-action" style="font-size:1.2rem; padding:10px 20px;" onclick="closeWinScreen()">Играть снова</button>
+    </div>
+
+    <script>
+        const SUITS = [
+            { symbol: '♠', name: 'spades', color: 'black' },
+            { symbol: '♥', name: 'hearts', color: 'red' },
+            { symbol: '♦', name: 'diamonds', color: 'red' },
+            { symbol: '♣', name: 'clubs', color: 'black' }
+        ];
+        const VALUES = [
+            { code: 'A', rank: 1 }, { code: '2', rank: 2 }, { code: '3', rank: 3 },
+            { code: '4', rank: 4 }, { code: '5', rank: 5 }, { code: '6', rank: 6 },
+            { code: '7', rank: 7 }, { code: '8', rank: 8 }, { code: '9', rank: 9 },
+            { code: '10', rank: 10 }, { code: 'J', rank: 11 }, { code: 'Q', rank: 12 },
+            { code: 'K', rank: 13 }
+        ];
+
+        let deck = [];
+        let stockState = [];
+        let wasteState = [];
+        let foundationsState = [[], [], [], []];
+        let tableauState = [[], [], [], [], [], [], []];
+
+        let score = 0;
+        let moves = 0;
+        let draggedData = null;
+
+        function updateStats() {
+            document.getElementById('score-val').innerText = score;
+            document.getElementById('moves-val').innerText = moves;
+        }
+
+        function changeScore(amount) {
+            score = Math.max(0, score + amount);
+            updateStats();
+        }
+
+        function addMove() {
+            moves++;
+            updateStats();
+        }
+
+        // Создание колоды
+        function createDeck() {
+            let newDeck = [];
+            let id = 0;
+            SUITS.forEach(suit => {
+                VALUES.forEach(val => {
+                    newDeck.push({
+                        id: 'c_' + id++,
+                        suit: suit.name,
+                        symbol: suit.symbol,
+                        color: suit.color,
+                        code: val.code,
+                        rank: val.rank,
+                        isFaceUp: false
+                    });
+                });
+            });
+            return newDeck;
+        }
+
+        // Перемешивание Фишера-Йетса
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Очистка DOM ячеек
+        function clearDOM() {
+            document.getElementById('stock').innerHTML = '';
+            document.getElementById('waste').innerHTML = '';
+            for(let i=0; i<4; i++) document.getElementById(`fnd-${i}`).innerHTML = '';
+            for(let i=0; i<7; i++) document.getElementById(`tab-${i}`).innerHTML = '';
+        }
+
+        // Старт игры
+        function initGame() {
+            deck = createDeck();
+            shuffle(deck);
+
+            score = 0;
+            moves = 0;
+            updateStats();
+            document.getElementById('win-screen').style.display = 'none';
+
+            stockState = [];
+            wasteState = [];
+            foundationsState = [[], [], [], []];
+            tableauState = [[], [], [], [], [], [], []];
+
+            // Раздача по 7 стопкам
+            for (let i = 0; i < 7; i++) {
+                for (let j = i; j < 7; j++) {
+                    tableauState[j].push(deck.pop());
+                }
+            }
+
+            // Открываем верхние карты в стопках
+            for (let i = 0; i < 7; i++) {
+                if (tableauState[i].length > 0) {
+                    tableauState[i][tableauState[i].length - 1].isFaceUp = true;
+                }
+            }
+
+            // Оставшиеся карты — в резервную колоду
+            stockState = deck;
+
+            renderAll();
+        }
+
+        // Рендеринг карты
+        function renderCardDOM(cardObj, index, isTopInStack) {
+            const cardEl = document.createElement('div');
+            cardEl.id = cardObj.id;
+            cardEl.className = `card ${cardObj.color}`;
+            
+            if (!cardObj.isFaceUp) {
+                cardEl.classList.add('back');
+            } else {
+                cardEl.innerHTML = `
+                    <div class="card-suit-top">${cardObj.code}<br>${cardObj.symbol}</div>
+                    <div class="card-suit-center">${cardObj.symbol}</div>
+                    <div class="card-suit-bottom">${cardObj.code}<br>${cardObj.symbol}</div>
+                `;
+                cardEl.setAttribute('draggable', 'true');
+                
+                // Обработчики Drag&Drop
+                cardEl.addEventListener('dragstart', handleDragStart);
+                cardEl.addEventListener('dragend', handleDragEnd);
+                
+                // Двойной клик — авто-сбор в дома
+                cardEl.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    tryAutoCollect(cardObj);
+                });
+            }
+
+            return cardEl;
+        }
+
+        // Отрисовка всего стола
+        function renderAll() {
+            clearDOM();
+
+            // 1. Резервная колода
+            const stockSlot = document.getElementById('stock');
+            if (stockState.length > 0) {
+                stockSlot.classList.remove('empty');
+                const topCard = document.createElement('div');
+                topCard.className = 'card back';
+                stockSlot.appendChild(topCard);
+            } else {
+                stockSlot.innerHTML = '<div style="color:rgba(255,255,255,0.4); text-align:center; line-height:var(--card-height); font-size:1.5rem">↻</div>';
+            }
+
+            // 2. Сброс колоды
+            const wasteSlot = document.getElementById('waste');
+            if (wasteState.length > 0) {
+                const card = wasteState[wasteState.length - 1];
+                const cardEl = renderCardDOM(card, 0, true);
+                wasteSlot.appendChild(cardEl);
+            }
+
+            // 3. Дома
+            for (let i = 0; i < 4; i++) {
+                const fndSlot = document.getElementById(`fnd-${i}`);
+                setupDropZone(fndSlot, 'foundation', i);
+                
+                if (foundationsState[i].length > 0) {
+                    const card = foundationsState[i][foundationsState[i].length - 1];
+                    const cardEl = renderCardDOM(card, 0, true);
+                    fndSlot.appendChild(cardEl);
+                }
+            }
+
+            // 4. Рабочие стопки
+            for (let i = 0; i < 7; i++) {
+                const tabSlot = document.getElementById(`tab-${i}`);
+                setupDropZone(tabSlot, 'tableau', i);
+
+                tableauState[i].forEach((card, index) => {
+                    const cardEl = renderCardDOM(card, index, index === tableauState[i].length - 1);
+                    // Вертикальное каскадное смещение карт на поле
+                    let offset = index * (window.innerWidth > 768 ? 18 : 10);
+                    cardEl.style.top = `${offset}px`;
+                    tabSlot.appendChild(cardEl);
+                });
+            }
+
+            checkWinCondition();
+        }
+
+        // Клик по колоде резерва
+        function drawCard() {
+            if (stockState.length > 0) {
+                let card = stockState.pop();
+                card.isFaceUp = true;
+                wasteState.push(card);
+                changeScore(0); 
+            } else if (wasteState.length > 0) {
+                // Переворачиваем сброс обратно
+                stockState = wasteState.reverse().map(c => {
+                    c.isFaceUp = false;
+                    return c;
+                });
+                wasteState = [];
+            }
+            addMove();
+            renderAll();
+        }
+
+        // Логика Drag & Drop
+        function handleDragStart(e) {
+            const cardId = e.target.id;
+            const sourceInfo = findCardLocation(cardId);
+            
+            if (!sourceInfo) return;
+
+            // Захватываем карту и все карты ниже неё в стопке
+            let cardsToDrag = [];
+            if (sourceInfo.zone === 'tableau') {
+                const idx = sourceInfo.cardIndex;
+                cardsToDrag = tableauState[sourceInfo.zoneIndex].slice(idx);
+            } else if (sourceInfo.zone === 'waste') {
+                cardsToDrag = [wasteState[wasteState.length - 1]];
+            } else if (sourceInfo.zone === 'foundation') {
+                cardsToDrag = [foundationsState[sourceInfo.zoneIndex][foundationsState[sourceInfo.zoneIndex].length - 1]];
+            }
+
+            draggedData = {
+                source: sourceInfo,
+                cards: cardsToDrag
+            };
+
+            e.dataTransfer.setData('text/plain', cardId);
+            setTimeout(() => {
+                cardsToDrag.forEach(c => {
+                    const el = document.getElementById(c.id);
+                    if(el) el.classList.add('dragging');
+                });
+            }, 0);
+        }
+
+        function handleDragEnd(e) {
+            renderAll();
+            draggedData = null;
+        }
+
+        function setupDropZone(element, type, zoneIndex) {
+            element.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            element.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (!draggedData) return;
+
+                if (validateMove(draggedData.cards[0], type, zoneIndex)) {
+                    executeMove(draggedData.source, type, zoneIndex, draggedData.cards);
+                    addMove();
+                }
+            });
+        }
+
+        // Поиск локации карты в структурах данных
+        function findCardLocation(cardId) {
+            // В сбросе
+            if (wasteState.length > 0 && wasteState[wasteState.length - 1].id === cardId) {
+                return { zone: 'waste' };
+            }
+            // В домах
+            for (let i = 0; i < 4; i++) {
+                let len = foundationsState[i].length;
+                if (len > 0 && foundationsState[i][len - 1].id === cardId) {
+                    return { zone: 'foundation', zoneIndex: i };
+                }
+            }
+            // В стопках
+            for (let i = 0; i < 7; i++) {
+                for (let j = 0; j < tableauState[i].length; j++) {
+                    if (tableauState[i][j].id === cardId) {
+                        return { zone: 'tableau', zoneIndex: i, cardIndex: j };
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Проверка корректности перемещения по правилам Косынки
+        function validateMove(movingCard, targetZone, targetZoneIndex) {
+            if (targetZone === 'tableau') {
+                const targetStack = tableauState[targetZoneIndex];
+                if (targetStack.length === 0) {
+                    // На пустое место можно положить только Короля (ранг 13)
+                    return movingCard.rank === 13;
+                } else {
+                    const topCard = targetStack[targetStack.length - 1];
+                    // Разные цвета мастей и ранг строго меньше на 1
+                    return topCard.isFaceUp && topCard.color !== movingCard.color && topCard.rank === movingCard.rank + 1;
+                }
+            } else if (targetZone === 'foundation') {
+                // Перетаскивать в дома можно строго по одной карте
+                if (draggedData && draggedData.cards.length > 1) return false;
+                
+                const targetStack = foundationsState[targetZoneIndex];
+                if (targetStack.length === 0) {
+                    // Первым в дом идет только Туз (ранг 1)
+                    return movingCard.rank === 1;
+                } else {
+                    const topCard = targetStack[targetStack.length - 1];
+                    // Та же масть и ранг на 1 больше
+                    return topCard.suit === movingCard.suit && movingCard.rank === topCard.rank + 1;
+                }
+            }
+            return false;
+        }
+
+        // Выполнение хода и обновление массивов данных
+        function executeMove(source, targetZone, targetZoneIndex, cards) {
+            // Удаляем карты из старого места
+            if (source.zone === 'tableau') {
+                tableauState[source.zoneIndex].splice(source.cardIndex);
+                // Автоматически открываем новую верхнюю карту
+                if (tableauState[source.zoneIndex].length > 0 && !tableauState[source.zoneIndex][tableauState[source.zoneIndex].length - 1].isFaceUp) {
+                    tableauState[source.zoneIndex][tableauState[source.zoneIndex].length - 1].isFaceUp = true;
+                    changeScore(5); // Очки за переворот карты на поле
+                }
+            } else if (source.zone === 'waste') {
+                wasteState.pop();
+            } else if (source.zone === 'foundation') {
+                foundationsState[source.zoneIndex].pop();
+            }
+
+            // Добавляем карты в новое место
+            if (targetZone === 'tableau') {
+                tableauState[targetZoneIndex] = tableauState[targetZoneIndex].concat(cards);
+                if (source.zone === 'waste') changeScore(5);
+                if (source.zone === 'foundation') changeScore(-10); // Штраф за возврат из дома
+            } else if (targetZone === 'foundation') {
+                foundationsState[targetZoneIndex].push(cards[0]);
+                changeScore(10); // Очки за карту в доме
+            }
+
+            renderAll();
+        }
+
+        // Авто-сбор по двойному клику
+        function tryAutoCollect(cardObj) {
+            const loc = findCardLocation(cardObj.id);
+            if (!loc) return;
+
+            // Разрешено кликать только по верхней карте стопки/сброса
+            if (loc.zone === 'tableau' && loc.cardIndex !== tableauState[loc.zoneIndex].length - 1) return;
+            if (loc.zone === 'waste' && cardObj.id !== wasteState[wasteState.length - 1].id) return;
+
+            // Ищем подходящий дом
+            for (let i = 0; i < 4; i++) {
+                const stack = foundationsState[i];
+                if (stack.length === 0 && cardObj.rank === 1) {
+                    // Туз идет в пустой дом
+                    executeAutoCollect(loc, i, cardObj);
+                    return;
+                } else if (stack.length > 0) {
+                    const top = stack[stack.length - 1];
+                    if (top.suit === cardObj.suit && cardObj.rank === top.rank + 1) {
+                        // Карта идет по масти вверх
+                        executeAutoCollect(loc, i, cardObj);
+                        return;
+                    }
+                }
+            }
+        }
+
+        function executeAutoCollect(source, targetFndIndex, card) {
+            // Удаляем карту
+            if (source.zone === 'tableau') {
+                tableauState[source.zoneIndex].pop();
+                if (tableauState[source.zoneIndex].length > 0 && !tableauState[source.zoneIndex][tableauState[source.zoneIndex].length - 1].isFaceUp) {
+                    tableauState[source.zoneIndex][tableauState[source.zoneIndex].length - 1].isFaceUp = true;
+                    changeScore(5);
+                }
+            } else if (source.zone === 'waste') {
+                wasteState.pop();
+            }
+
+            foundationsState[targetFndIndex].push(card);
+            changeScore(10);
+            addMove();
+            renderAll();
+        }
+
+        // Проверка победы (все 52 карты разложены по 4 домам)
+        function checkWinCondition() {
+            let totalCardsInFoundations = 0;
+            for(let i=0; i<4; i++) {
+                totalCardsInFoundations += foundationsState[i].length;
+            }
+            if (totalCardsInFoundations === 52) {
+                document.getElementById('win-stats').innerText = `Вы прошли пасьянс за ${moves} ходов! Итоговый счет: ${score} очков.`;
+                document.getElementById('win-screen').style.display = 'flex';
+            }
+        }
+
+        function closeWinScreen() {
+            initGame();
+        }
+
+        // Инициализация при загрузке страницы сайта
+        window.onload = initGame;
+    </script>
+</body>
+</html>
